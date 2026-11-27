@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id     Int          @id @default(autoincrement())
+  name        String                          // ← បន្ថែម
+  email       String       @unique
+  password    String
+  role        String       @default("USER")   // ← ត្រូវជា "USER" uppercase
+  courses     Course[]
+  enrollments Enrollment[]
+  progress    Progress[]
+}
+
+model Course {
+  course_id   Int          @id @default(autoincrement())
+  title       String
+  description String
+  image_url   String       @default("")    // ← បន្ថែមបន្ទាត់នេះ
+  user_id     Int
+  user        User         @relation(fields: [user_id], references: [user_id])
+  lessons     Lesson[]
+  enrollments Enrollment[]
+}
+
+model Lesson {
+  lesson_id    Int        @id @default(autoincrement())
+  title        String
+  video_url    String
+  lesson_order Int
+  course_id    Int
+  course       Course     @relation(fields: [course_id], references: [course_id])
+  quizzes      Quiz[]
+  progress     Progress[]
+}
+
+model Enrollment {
+  enrollment_id Int      @id @default(autoincrement())
+  user_id       Int
+  course_id     Int
+  enrolled_at   DateTime @default(now())
+  user          User     @relation(fields: [user_id], references: [user_id])
+  course        Course   @relation(fields: [course_id], references: [course_id])
+}
+
+model Progress {
+  progress_id Int    @id @default(autoincrement())
+  user_id     Int
+  lesson_id   Int
+  status      String
+  user        User   @relation(fields: [user_id], references: [user_id])
+  lesson      Lesson @relation(fields: [lesson_id], references: [lesson_id])
+}
+
+model Quiz {
+  quiz_id   Int      @id @default(autoincrement())
+  lesson_id Int
+  question  String
+  lesson    Lesson   @relation(fields: [lesson_id], references: [lesson_id])
+  answers   Answer[]
+}
+
+model Answer {
+  answer_id  Int     @id @default(autoincrement())
+  quiz_id    Int
+  answer     String
+  is_correct Boolean
+  quiz       Quiz    @relation(fields: [quiz_id], references: [quiz_id])
+}
